@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>One‑click IP & Location Logger</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0b0c10; --fg: #e9eef2; --muted:#9aa8b4; --accent:#4f46e5; --ok:#16a34a; --warn:#eab308; --err:#ef4444;
+    }
+    body {font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin:0; min-height:100vh; display:grid; place-items:center; background:linear-gradient(135deg,#0f172a,#111827);}    
+    .card {width:min(720px,92vw); background:#0b0f1a; border:1px solid #1f2937; border-radius:20px; padding:28px; box-shadow: 0 20px 60px rgba(0,0,0,.35);}  
+    h1 {margin:0 0 10px; font-size:clamp(22px,2.6vw,32px); color:#e5e7eb}
+    p {color:#9ca3af; line-height:1.5;}
+    code {background:#0f172a; padding:.2rem .35rem; border-radius:6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .muted{color:#9aa8b4}
+    .log {margin-top:16px; padding:12px 14px; background:#0b1220; border:1px dashed #334155; border-radius:12px; min-height:52px; white-space:pre-wrap; font-size:14px; color:#cbd5e1}
+    .fineprint{font-size:12px; color:#94a3b8;}
+    a{color:#93c5fd}
+  </style>
+</head>
+<body>
+  <main class="card" role="main" aria-labelledby="title">
+    <h1 id="title">One‑click IP & Location Logger</h1>
+    <p>
+      When you load this page:
+    </p>
+    <ol class="muted">
+      <li>It captures your IP address and approximate location from a public IP‑lookup service.</li>
+      <li>It asks your browser for precise GPS/Wi‑Fi location. If you <strong>allow</strong>, it sends it; if you <strong>deny</strong>, it sends <code>FALSE</code>.</li>
+      <li>It sends everything to a Firebase Realtime Database endpoint you control.</li>
+    </ol>
+    
+    <div class="log" id="log" aria-live="polite"></div>
+
+    <p class="fineprint">
+      ⚠️ Geolocation requires serving this page over <strong>HTTPS</strong> (or <code>http://localhost</code>). Make sure your Firebase Database rules allow anonymous writes (for testing only!), or implement proper auth.
+    </p>
+
+    <details style="margin-top:6px">
+      <summary class="muted">Privacy & implementation details</summary>
+      <p class="fineprint">
+        This demo calls <code>https://ipapi.co/json/</code> to get <em>approximate</em> location from your IP, then asks for precise location using the Web Geolocation API.
+        The payload includes a timestamp, user agent, referrer, your IP, the IP‑based city/region/country, and either precise coords or <code>FALSE</code>.
+      </p>
+    </details>
+  </main>
+
+  <script>
+    const DATABASE_URL = "https://tracking-link-database-default-rtdb.firebaseio.com"; 
+    const COLLECTION_PATH = "/hits"; 
+
+    const el = (id) => document.getElementById(id);
+    const log = (msg) => { el('log').textContent += (msg + "\n"); };
+
+    async function fetchIPApprox() {
+      const resp = await fetch('https://ipapi.co/json/');
+      if (!resp.ok) throw new Error('IP lookup failed');
+      const data = await resp.json();
+      return {
+        ip: data.ip || null,
+        approx: {
+          city: data.city || null,
+          region: data.region || null,
+          country: data.country_name || data.country || null,
+          postal: data.postal || null,
+          org: data.org || null
+        }
+      };
+    }
+
+    function getPreciseLocationOrFalse(timeoutMs = 15000, maxRetries = 2) {
+      return new Promise(async (resolve) => {
+        if (!('geolocation' in navigator)) {
+          return resolve({ precise: false, value: false, reason: 'Geolocation API not available' });
+        }
+
+        // Try Permissions API first so we can fail fast if explicitly denied
+        try {
+          if (navigator.permissions && navigator.permissions.query) {
+            const p = await navigator.permissions.query({ name: 'geolocation' });
+            log(`(permission state: ${p.state})`);
+            if (p.state === 'denied') {
+              return resolve({ precise: false, value: false, reason: 'Permission denied (Permissions API)' });
+            }
+          }
+        } catch (e) {
+          // ignore permission API failures and continue to prompt
+        }
+
+        let attempts = 0;
+
+        function attemptGetCurrent(options) {
+          attempts++;
+          const onSuccess = (pos) => {
+            resolve({ precise: true, value: { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy_m: pos.coords.accuracy } });
+          };
+
+          const onError = (err) => {
+            // err.code: 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
+            const code = err && err.code;
+            const msg = err && err.message;
+            log(`(geolocation error code=${code} message=${msg})`);
+
+            // If position unavailable, try again with higher accuracy once
+            if (code === 2 && attempts < maxRetries) {
+              log('(retrying with enableHighAccuracy=true)');
+              navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: true, maximumAge: 0, timeout: timeoutMs });
+              return;
+            }
+
+            // If watchPosition is available, try it as a last resort for devices that need time to acquire
+            if (typeof navigator.geolocation.watchPosition === 'function') {
+              let watchId = null;
+              const watchTimeout = setTimeout(() => {
+                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+                resolve({ precise: false, value: false, reason: `watchPosition timeout (${msg || code})` });
+              }, timeoutMs);
+
+              try {
+                watchId = navigator.geolocation.watchPosition((pos) => {
+                  clearTimeout(watchTimeout);
+                  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+                  resolve({ precise: true, value: { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy_m: pos.coords.accuracy } });
+                }, (werr) => {
+                  clearTimeout(watchTimeout);
+                  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+                  log(`(watchPosition error code=${werr.code} message=${werr.message})`);
+                  resolve({ precise: false, value: false, reason: werr && (werr.message || werr.code) });
+                }, { enableHighAccuracy: true, maximumAge: 0 });
+                return;
+              } catch (e) {
+                // fall through to resolve false below
+                log(`(watchPosition threw: ${e && e.message})`);
+              }
+            }
+
+            // Otherwise resolve false with the reason
+            resolve({ precise: false, value: false, reason: msg || code });
+          };
+
+          try {
+            navigator.geolocation.getCurrentPosition(onSuccess, onError, Object.assign({ enableHighAccuracy: false, maximumAge: 0, timeout: timeoutMs }, options || {}));
+          } catch (e) {
+            // synchronous exceptions (rare)
+            log(`(geolocation threw: ${e && e.message})`);
+            resolve({ precise: false, value: false, reason: e && e.message });
+          }
+        }
+
+        // kick off the first attempt
+        attemptGetCurrent();
+      });
+    }
+
+    async function sendToFirebase(payload) {
+      const url = `${DATABASE_URL}${COLLECTION_PATH}.json`;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!resp.ok) {
+        const text = await resp.text().catch(() => '');
+        throw new Error(`Firebase write failed: ${resp.status} ${text}`);
+      }
+      return resp.json();
+    }
+
+    function buildPayload({ ipInfo, precise }) {
+      return {
+        ts_iso: new Date().toISOString(),
+        user_agent: navigator.userAgent,
+        referrer: document.referrer || null,
+        ip: ipInfo.ip,
+        ip_lookup: ipInfo.approx,
+        precise_location: precise.value === false ? false : {
+          lat: precise.value.lat,
+          lon: precise.value.lon,
+          accuracy_m: precise.value.accuracy_m
+        },
+        precise_granted: precise.precise === true,
+        precise_reason: precise.reason || null
+      };
+    }
+
+    async function runLogger() {
+      el('log').textContent = '';
+      try {
+        log('▶ Looking up IP & approximate location…');
+        const ipInfo = await fetchIPApprox();
+        log(`✓ IP: ${ipInfo.ip} · ${ipInfo.approx.city || '—'}, ${ipInfo.approx.region || '—'}, ${ipInfo.approx.country || '—'}`);
+
+        log('▶ Asking for precise location… (your browser will prompt)');
+        const precise = await getPreciseLocationOrFalse();
+        if (precise.value === false) {
+          log('✗ Precise location denied or unavailable → will send FALSE');
+        } else {
+          log(`✓ Precise coordinates captured (±${Math.round(precise.value.accuracy_m)} m)`);
+        }
+
+        const payload = buildPayload({ ipInfo, precise });
+        log('▶ Sending to Firebase RTDB…');
+        const res = await sendToFirebase(payload);
+        log(`✓ Stored with key: ${res && res.name ? res.name : '(unknown)'}`);
+      } catch (err) {
+        console.error(err);
+        log('❌ Error: ' + (err && err.message ? err.message : err));
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', runLogger);
+  </script>
+</body>
+</html>
